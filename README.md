@@ -40,6 +40,8 @@ openclaw gateway restart
 
 Add to `openclaw.json`:
 
+⚠️ **Important**: Must set `allowFrom` with your email addresses or plugin won't process any emails!
+
 ```json
 {
   "channels": {
@@ -63,10 +65,17 @@ Add to `openclaw.json`:
       "fromAddress": "your@gmail.com",
       "pollInterval": 30000,
       "dmPolicy": "allowlist",
-      "allowFrom": ["allowed@example.com"]
+      "allowFrom": ["your@gmail.com", "another@trusted.com"]
     }
   }
 }
+```
+
+### Key Settings
+
+- **`allowFrom`**: 🔒 **Security whitelist** - Only emails from these addresses will be processed
+- **`pollInterval`**: Check for new emails every X milliseconds (30000 = 30 seconds)
+- **`dmPolicy`**: Must be `"allowlist"` to use `allowFrom` filtering
 ```
 
 ## Gmail Setup
