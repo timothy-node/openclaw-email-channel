@@ -1,0 +1,46 @@
+{
+  "name": "@openclaw/email",
+  "version": "0.2.0",
+  "description": "Two-way email communication channel for OpenClaw",
+  "main": "index.ts",
+  "type": "module",
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "email",
+      "label": "Email",
+      "selectionLabel": "Email (IMAP/SMTP)",
+      "docsPath": "/channels/email",
+      "docsLabel": "email",
+      "blurb": "Two-way email communication via IMAP/SMTP.",
+      "order": 70,
+      "aliases": [
+        "mail",
+        "smtp",
+        "imap"
+      ]
+    }
+  },
+  "dependencies": {
+    "imapflow": "^1.0.162",
+    "mailparser": "^3.6.6",
+    "nodemailer": "^6.9.8"
+  },
+  "devDependencies": {
+    "@sinclair/typebox": "^0.32.35",
+    "@types/nodemailer": "^6.4.14",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "openclaw",
+    "email",
+    "imap",
+    "smtp",
+    "channel",
+    "plugin"
+  ],
+  "author": "Timothy",
+  "license": "MIT"
+}
