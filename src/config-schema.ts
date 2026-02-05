@@ -21,7 +21,7 @@ export const EmailConfigSchema = Type.Object({
   name: Type.Optional(Type.String()),
   imap: EmailImapSchema,
   smtp: EmailSmtpSchema,
-  fromName: Type.Optional(Type.String({ default: "OpenClaw" })),
+  fromName: Type.Optional(Type.String({ default: "" })),
   fromAddress: Type.String(),
   pollInterval: Type.Optional(Type.Number({ default: 30000 })),
   dmPolicy: Type.Optional(Type.String({ default: "allowlist" })),

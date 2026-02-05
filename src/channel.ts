@@ -164,7 +164,7 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
       const conv = conversations.get(getThreadId(toEmail, account.fromAddress));
       const subject = conv?.subject
         ? (conv.subject.startsWith("Re:") ? conv.subject : `Re: ${conv.subject}`)
-        : "Message from OpenClaw";
+        : "Message";
 
       const mailOptions: nodemailer.SendMailOptions = {
         from: `"${account.fromName}" <${account.fromAddress}>`,
@@ -318,7 +318,7 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
                     if (payload.text) {
                       const subject = conv?.subject
                         ? (conv.subject.startsWith("Re:") ? conv.subject : `Re: ${conv.subject}`)
-                        : "Reply from OpenClaw";
+                        : "Reply";
                       await sendEmailReply(account, fromAddr, subject, payload.text, messageId);
                       log?.info(`[${account.accountId}] Email reply sent to ${fromAddr}`);
                     }
@@ -476,7 +476,7 @@ export async function startEmailPolling(): Promise<void> {
                 reply: async (responseText: string) => {
                   const subject = conv?.subject
                     ? (conv.subject.startsWith("Re:") ? conv.subject : `Re: ${conv.subject}`)
-                    : "Reply from OpenClaw";
+                    : "Reply";
                   await sendEmailReply(account, fromAddr, subject, responseText, messageId);
                 },
               });

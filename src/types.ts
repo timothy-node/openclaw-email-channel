@@ -72,7 +72,7 @@ export function resolveEmailAccount(params: {
     config: accountConfig as EmailConfig,
     imap: imap ?? { host: "", user: "", password: "" },
     smtp: smtp ?? { host: "", user: "", password: "" },
-    fromName: accountConfig.fromName ?? "OpenClaw",
+    fromName: accountConfig.fromName ?? "",
     fromAddress,
     pollInterval: accountConfig.pollInterval ?? 30000,
     allowFrom: accountConfig.allowFrom ?? [],
