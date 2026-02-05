@@ -61,7 +61,7 @@ Add to `openclaw.json`:
         "user": "your@gmail.com",
         "password": "your-app-password"
       },
-      "fromName": "OpenClaw",
+      "fromName": "",
       "fromAddress": "your@gmail.com",
       "pollInterval": 30000,
       "dmPolicy": "allowlist",
@@ -73,6 +73,7 @@ Add to `openclaw.json`:
 
 ### Key Settings
 
+- **`fromName`**: 寄件人顯示名稱（可留空 `""`，只顯示信箱地址）
 - **`allowFrom`**: 🔒 **Security whitelist** - Only emails from these addresses will be processed
 - **`pollInterval`**: Check for new emails every X milliseconds (30000 = 30 seconds)
 - **`dmPolicy`**: Must be `"allowlist"` to use `allowFrom` filtering

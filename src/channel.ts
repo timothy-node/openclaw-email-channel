@@ -58,8 +58,12 @@ async function sendEmailReply(
     },
   });
 
+  const fromHeader = account.fromName?.trim()
+    ? `"${account.fromName}" <${account.fromAddress}>`
+    : `<${account.fromAddress}>`;
+
   const mailOptions: nodemailer.SendMailOptions = {
-    from: `"${account.fromName}" <${account.fromAddress}>`,
+    from: fromHeader,
     to: extractEmail(to),
     subject,
     text,
@@ -166,8 +170,12 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
         ? (conv.subject.startsWith("Re:") ? conv.subject : `Re: ${conv.subject}`)
         : "Message";
 
+      const fromHeader = account.fromName?.trim()
+        ? `"${account.fromName}" <${account.fromAddress}>`
+        : `<${account.fromAddress}>`;
+
       const mailOptions: nodemailer.SendMailOptions = {
-        from: `"${account.fromName}" <${account.fromAddress}>`,
+        from: fromHeader,
         to: toEmail,
         subject,
         text,
