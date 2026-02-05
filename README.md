@@ -52,14 +52,14 @@ Add to `openclaw.json`:
         "port": 993,
         "secure": true,
         "user": "your@gmail.com",
-        "password": "your-app-password"
+        "password": "${EMAIL_APP_PASSWORD}"
       },
       "smtp": {
         "host": "smtp.gmail.com",
         "port": 587,
         "secure": false,
         "user": "your@gmail.com",
-        "password": "your-app-password"
+        "password": "${EMAIL_APP_PASSWORD}"
       },
       "fromName": "",
       "fromAddress": "your@gmail.com",
@@ -71,13 +71,34 @@ Add to `openclaw.json`:
 }
 ```
 
+### Using Environment Variables (Recommended)
+
+For security, store passwords in `env.vars` instead of plain text:
+
+```json
+{
+  "env": {
+    "vars": {
+      "EMAIL_APP_PASSWORD": "your-app-password-here"
+    }
+  },
+  "channels": {
+    "email": {
+      "imap": { "password": "${EMAIL_APP_PASSWORD}" },
+      "smtp": { "password": "${EMAIL_APP_PASSWORD}" }
+    }
+  }
+}
+```
+
 ### Key Settings
 
 - **`fromName`**: Sender display name (set to `""` to omit the name and show only the email address)
 - **`allowFrom`**: 🔒 **Security whitelist** - Only emails from these addresses will be processed
 - **`pollInterval`**: Check for new emails every X milliseconds (30000 = 30 seconds)
 - **`dmPolicy`**: Must be `"allowlist"` to use `allowFrom` filtering
-```
+- **`imap.timeout`**: IMAP connection timeout in milliseconds (default: 30000)
+- **`smtp.timeout`**: SMTP connection timeout in milliseconds (default: 30000)
 
 ## Gmail Setup
 

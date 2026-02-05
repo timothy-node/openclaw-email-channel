@@ -6,6 +6,7 @@ export const EmailImapSchema = Type.Object({
   secure: Type.Optional(Type.Boolean({ default: true })),
   user: Type.String(),
   password: Type.String(),
+  timeout: Type.Optional(Type.Number({ default: 30000 })),
 });
 
 export const EmailSmtpSchema = Type.Object({
@@ -14,6 +15,7 @@ export const EmailSmtpSchema = Type.Object({
   secure: Type.Optional(Type.Boolean({ default: false })),
   user: Type.String(),
   password: Type.String(),
+  timeout: Type.Optional(Type.Number({ default: 30000 })),
 });
 
 export const EmailConfigSchema = Type.Object({

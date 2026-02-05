@@ -240,8 +240,8 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
       let pollTimer: NodeJS.Timeout | null = null;
       let stopped = false;
 
-      // Initialize IMAP
-      imapClient = new ImapFlow({
+      // Initialize IMAP with reconnection support
+      const createImapClient = () => new ImapFlow({
         host: account.imap.host,
         port: account.imap.port ?? 993,
         secure: account.imap.secure ?? true,
@@ -252,8 +252,25 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
         logger: false,
       });
 
-      await imapClient.connect();
-      log?.info(`[${account.accountId}] IMAP connected to ${account.imap.host}`);
+      const connectImap = async (retries = 3): Promise<void> => {
+        for (let attempt = 1; attempt <= retries; attempt++) {
+          try {
+            if (imapClient) {
+              try { await imapClient.logout(); } catch {}
+            }
+            imapClient = createImapClient();
+            await imapClient.connect();
+            log?.info(`[${account.accountId}] IMAP connected to ${account.imap.host}`);
+            return;
+          } catch (err: any) {
+            log?.warn(`[${account.accountId}] IMAP connect attempt ${attempt}/${retries} failed: ${err.message}`);
+            if (attempt === retries) throw err;
+            await new Promise(r => setTimeout(r, 2000 * attempt));
+          }
+        }
+      };
+
+      await connectImap();
 
       // Check for new emails
       const checkEmails = async () => {
@@ -347,6 +364,15 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
           }
         } catch (error: any) {
           log?.error(`[${account.accountId}] Email check error: ${error.message}`);
+          // Attempt to reconnect on connection errors
+          if (error.message?.includes('connect') || error.message?.includes('socket') || error.message?.includes('ECONNRESET')) {
+            log?.info(`[${account.accountId}] Attempting IMAP reconnection...`);
+            try {
+              await connectImap();
+            } catch (reconnectErr: any) {
+              log?.error(`[${account.accountId}] IMAP reconnection failed: ${reconnectErr.message}`);
+            }
+          }
         }
       };
 

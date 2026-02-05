@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/email",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Two-way email communication channel for OpenClaw",
   "main": "index.ts",
   "type": "module",
