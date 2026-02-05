@@ -12,9 +12,27 @@ Two-way email communication with your OpenClaw AI assistant.
 
 ## Installation
 
+### 1. Download Plugin
+
+```bash
+# Create extensions directory if it doesn't exist
+mkdir -p ~/.openclaw/extensions
+
+# Clone from GitHub
+cd ~/.openclaw/extensions
+git clone https://github.com/timothy-node/openclaw-email-channel.git email
+```
+
+### 2. Install Dependencies
+
 ```bash
 cd ~/.openclaw/extensions/email
 npm install
+```
+
+### 3. Restart OpenClaw
+
+```bash
 openclaw gateway restart
 ```
 
