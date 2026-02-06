@@ -40,6 +40,23 @@ function getThreadId(from: string, to: string): string {
   return `email:${emails.join(":")}`;
 }
 
+// Convert plain text to properly formatted HTML email
+function textToHtml(text: string): string {
+  // Escape HTML entities
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+  
+  // Convert double newlines to paragraphs, single newlines to <br>
+  const paragraphs = escaped.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+  if (paragraphs.length <= 1) {
+    return escaped.replace(/\n/g, "<br>");
+  }
+  return paragraphs.map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("\n");
+}
+
 // Helper to send email reply via SMTP
 async function sendEmailReply(
   account: ResolvedEmailAccount,
@@ -67,7 +84,7 @@ async function sendEmailReply(
     to: extractEmail(to),
     subject,
     text,
-    html: text.replace(/\n/g, "<br>"),
+    html: textToHtml(text),
   };
 
   if (inReplyTo) {
@@ -179,7 +196,7 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
         to: toEmail,
         subject,
         text,
-        html: text.replace(/\n/g, "<br>"),
+        html: textToHtml(text),
       };
 
       if (conv?.lastMessageId) {
