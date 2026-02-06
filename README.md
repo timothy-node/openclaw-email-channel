@@ -1,10 +1,5 @@
 # OpenClaw Email Channel Plugin
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178c6)](https://www.typescriptlang.org/)
-[![OpenClaw Compatible](https://img.shields.io/badge/OpenClaw-Plugin-orange)](https://github.com/openclaw/openclaw)
-
 Two-way email communication for your OpenClaw AI assistant via IMAP/SMTP.
 
 ---
@@ -171,3 +166,10 @@ Use the generated app password in `env.vars.EMAIL_APP_PASSWORD`
 ## 📄 License
 
 MIT © OpenClaw Contributors
+
+---
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178c6)](https://www.typescriptlang.org/)
+[![OpenClaw Compatible](https://img.shields.io/badge/OpenClaw-Plugin-orange)](https://github.com/openclaw/openclaw)
