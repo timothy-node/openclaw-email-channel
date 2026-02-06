@@ -58,27 +58,53 @@ export function textToHtml(text: string): string {
 
 /**
  * Strip quoted reply content from email body
+ * Only strips if there's actual content before the quote
  */
 export function stripQuotedReplies(text: string): string {
   const lines = text.split("\n");
   const result: string[] = [];
+  let foundContent = false;
 
   for (const line of lines) {
-    // Stop at common reply markers
-    if (
-      line.match(/^On .+ wrote:$/i) ||
-      line.match(/^>/) ||
-      line.match(/^-{3,}/) ||
-      line.match(/^_{3,}/) ||
-      line.match(/^From:.*@/) ||
-      line.match(/^Sent from my/)
-    ) {
-      break;
+    const trimmedLine = line.trim();
+    
+    // Track if we've found any real content
+    if (trimmedLine.length > 0 && !line.match(/^>/)) {
+      foundContent = true;
     }
+    
+    // Only stop at quote markers if we've already found content
+    if (foundContent) {
+      // Stop at common reply markers (English and Chinese)
+      if (
+        line.match(/^On .+ wrote:$/i) ||
+        line.match(/寫道[：:]\s*$/i) ||
+        line.match(/^>/) ||
+        line.match(/^-{5,}/) ||
+        line.match(/^_{5,}/) ||
+        line.match(/^From:.*<.*@.*>/) ||
+        line.match(/^Sent from my/)
+      ) {
+        break;
+      }
+    }
+    
+    // Skip lines that are clearly quoted
+    if (line.match(/^>/)) {
+      continue;
+    }
+    
     result.push(line);
   }
 
-  return result.join("\n").trim();
+  const cleaned = result.join("\n").trim();
+  
+  // If nothing left, return original text (minus obvious quotes)
+  if (!cleaned) {
+    return text.split("\n").filter(l => !l.match(/^>/)).join("\n").trim();
+  }
+  
+  return cleaned;
 }
 
 /**
