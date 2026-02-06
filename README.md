@@ -112,6 +112,8 @@ Add to your `openclaw.json`:
 }
 ```
 
+> ⚠️ **Security Note**: The `allowFrom` array is required. Only emails from listed addresses will be processed.
+
 ---
 
 ## 📧 Gmail Setup
