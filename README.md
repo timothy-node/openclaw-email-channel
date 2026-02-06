@@ -128,10 +128,9 @@ Add to your `openclaw.json`:
 ### Step 2: Create App Password
 
 1. Visit [Google App Passwords](https://myaccount.google.com/apppasswords)
-2. Select app: **Mail**
-3. Select device: **Other** (enter "OpenClaw")
-4. Click **Generate**
-5. Copy the 16-character password
+2. Enter app name: **OpenClaw**
+3. Click **Create**
+4. Copy the 16-character password
 
 ### Step 3: Configure OpenClaw
 
