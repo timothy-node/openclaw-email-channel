@@ -112,27 +112,6 @@ Add to your `openclaw.json`:
 }
 ```
 
-### 📋 Configuration Reference
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `enabled` | boolean | `false` | Enable/disable the email channel |
-| `imap.host` | string | — | IMAP server hostname |
-| `imap.port` | number | `993` | IMAP port (993 for SSL) |
-| `imap.secure` | boolean | `true` | Use SSL/TLS for IMAP |
-| `imap.timeout` | number | `30000` | Connection timeout (ms) |
-| `smtp.host` | string | — | SMTP server hostname |
-| `smtp.port` | number | `587` | SMTP port (587 for STARTTLS) |
-| `smtp.secure` | boolean | `false` | Use implicit TLS (usually false for port 587) |
-| `smtp.timeout` | number | `30000` | Connection timeout (ms) |
-| `fromName` | string | `""` | Display name (empty = email only) |
-| `fromAddress` | string | — | Sender email address |
-| `pollInterval` | number | `30000` | Inbox check interval (ms) |
-| `dmPolicy` | string | `"allowlist"` | Must be `"allowlist"` for filtering |
-| `allowFrom` | array | `[]` | ⚠️ **Required** - Allowed sender emails |
-
-> ⚠️ **Security Note**: The `allowFrom` array is required. Only emails from listed addresses will be processed.
-
 ---
 
 ## 📧 Gmail Setup
