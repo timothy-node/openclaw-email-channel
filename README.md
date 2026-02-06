@@ -6,14 +6,12 @@ Two-way email communication for your OpenClaw AI assistant via IMAP/SMTP.
 
 ## ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| 📥 **IMAP Monitoring** | Real-time inbox polling with configurable intervals |
-| 📤 **SMTP Delivery** | Send replies directly from your AI assistant |
-| 🧵 **Thread Tracking** | Maintains conversation context across email chains |
-| 🔒 **Sender Allowlist** | Security whitelist to control who can interact |
-| 📎 **Attachments** | Support for email attachments |
-| ⚡ **Environment Variables** | Secure credential management via `${VAR}` syntax |
+- 📥 **IMAP Monitoring** — Real-time inbox polling with configurable intervals
+- 📤 **SMTP Delivery** — Send replies directly from your AI assistant
+- 🧵 **Thread Tracking** — Maintains conversation context across email chains
+- 🔒 **Sender Allowlist** — Security whitelist to control who can interact
+- 📎 **Attachments** — Support for email attachments
+- ⚡ **Environment Variables** — Secure credential management via `${VAR}` syntax
 
 ---
 
@@ -154,12 +152,10 @@ Use the generated app password in `env.vars.EMAIL_APP_PASSWORD`
 
 ## 🛠️ Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| No emails processed | Check `allowFrom` includes sender address |
-| Connection timeout | Verify IMAP/SMTP host and port settings |
-| Authentication failed | Regenerate app password, check `env.vars` |
-| Emails not sending | Confirm SMTP settings and `fromAddress` |
+- **No emails processed** — Check `allowFrom` includes sender address
+- **Connection timeout** — Verify IMAP/SMTP host and port settings
+- **Authentication failed** — Regenerate app password, check `env.vars`
+- **Emails not sending** — Confirm SMTP settings and `fromAddress`
 
 ---
 
