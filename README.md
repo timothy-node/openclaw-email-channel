@@ -161,7 +161,7 @@ Use the generated app password in `env.vars.EMAIL_APP_PASSWORD`
 
 ## 📄 License
 
-MIT © OpenClaw Contributors
+MIT
 
 ---
 
