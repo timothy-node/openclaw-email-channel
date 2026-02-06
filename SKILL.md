@@ -29,7 +29,7 @@ message action=send channel=email target=recipient@example.com message="Your mes
 |-----------|----------|-------------|
 | `target` | Yes | Recipient email address |
 | `message` | Yes | Email body (plain text or HTML) |
-| `subject` | No | Email subject (defaults to "Message from OpenClaw") |
+| `subject` | No | Email subject |
 | `replyTo` | No | Message ID to reply to (maintains thread) |
 
 ### Examples
