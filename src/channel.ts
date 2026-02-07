@@ -107,16 +107,16 @@ async function createImapConnection(
       return client;
     } catch (err: any) {
       lastError = err;
-      log?.warn?.(
-        `[${account.accountId}] IMAP connect attempt ${attempt}/${maxRetries} failed: ${err.message}`
-      );
       
       // Don't retry on auth errors - they won't succeed
       if (isAuthError(err)) {
         log?.error?.(`[${account.accountId}] Authentication failed - check your app password`);
-        log?.warn?.(`[${account.accountId}] Auth error details: authenticationFailed=${err.authenticationFailed}, serverResponseCode=${err.serverResponseCode}`);
         return null;
       }
+      
+      log?.warn?.(
+        `[${account.accountId}] IMAP connect attempt ${attempt}/${maxRetries} failed: ${err.message}`
+      );
       
       if (attempt < maxRetries) {
         await new Promise((r) => setTimeout(r, 2000 * attempt));
