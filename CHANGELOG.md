@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2026-02-07
+
+### Fixed
+- **Graceful Auth Error Handling** - Authentication failures no longer crash the gateway
+- **Smart Auth Detection** - Detects `AUTHENTICATIONFAILED` errors and stops immediately (no wasted retries)
+- **Socket Timeout Prevention** - Added `socketTimeout` (60s default) to prevent hanging connections
+- **Uncaught Exception Prevention** - Added error event handlers on IMAP clients
+
+### Changed
+- Auth errors now show clear message: `Authentication failed - check your app password`
+- Removed misleading retry count for auth errors (was showing `1/3` when it wouldn't retry)
+- Connection failures return gracefully instead of throwing
+
 ## [0.3.0] - 2026-02-06
 
 ### Added
