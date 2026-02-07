@@ -4,6 +4,10 @@ import {
 } from "openclaw/plugin-sdk";
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
+import * as fs from "fs";
+import * as path from "path";
+
+console.log("[email-plugin] channel.ts loaded (patched with attachment support)");
 
 import { getEmailRuntime } from "./runtime.js";
 import {
@@ -36,7 +40,8 @@ async function sendEmailReply(
   to: string,
   subject: string,
   text: string,
-  inReplyTo?: string
+  inReplyTo?: string,
+  attachments?: Array<{ filename: string; path: string }>
 ): Promise<void> {
   const smtpConfig = {
     host: account.smtp.host,
@@ -49,7 +54,7 @@ async function sendEmailReply(
   const transport = await getSmtpTransport(smtpConfig);
 
   try {
-    await transport.sendMail({
+    const mailOptions: any = {
       from: formatEmailAddress(account.fromAddress, account.fromName),
       to: extractEmail(to),
       subject,
@@ -57,7 +62,14 @@ async function sendEmailReply(
       html: textToHtml(text),
       inReplyTo,
       references: inReplyTo,
-    });
+    };
+    if (attachments?.length) {
+      mailOptions.attachments = attachments.map((a) => ({
+        filename: a.filename,
+        path: a.path,
+      }));
+    }
+    await transport.sendMail(mailOptions);
   } finally {
     releaseSmtpTransport(smtpConfig);
   }
@@ -166,6 +178,27 @@ async function processInbox(
         const threadId = getThreadId(fromAddr, account.fromAddress);
         const subject = parsed.subject || "(no subject)";
 
+        // Save attachments if any
+        const attachmentPaths: string[] = [];
+        log?.info?.(`[${account.accountId}] Attachments count: ${parsed.attachments?.length ?? 0}, dir: ${account.attachmentsDir ?? 'not set'}`);
+        if (parsed.attachments?.length && account.attachmentsDir) {
+          const dir = account.attachmentsDir;
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+          for (const att of parsed.attachments) {
+            const safeName = (att.filename || `attachment-${Date.now()}`).replace(/[^a-zA-Z0-9._-]/g, "_");
+            const filePath = path.join(dir, `${Date.now()}-${safeName}`);
+            fs.writeFileSync(filePath, att.content);
+            attachmentPaths.push(filePath);
+            log?.info?.(`[${account.accountId}] Saved attachment: ${filePath}`);
+          }
+        }
+
+        // Append attachment info to message text
+        let bodyText = text;
+        if (attachmentPaths.length > 0) {
+          bodyText += "\n\n[Attachments saved to:\n" + attachmentPaths.join("\n") + "]";
+        }
+
         // Store conversation for threading
         conversationStore.set(threadId, {
           threadId,
@@ -184,7 +217,7 @@ async function processInbox(
           FromName: fromName,
           To: threadId,
           ChatType: "direct",
-          Body: text,
+          Body: bodyText,
           RawBody: rawText,
           MessageSid: messageId,
         };
@@ -197,11 +230,16 @@ async function processInbox(
           ctx: finalCtx,
           cfg,
           dispatcherOptions: {
-            deliver: async (payload: { text?: string }) => {
+            deliver: async (payload: { text?: string; media?: string; filePath?: string }) => {
               if (payload.text) {
                 const replySubject = subject.startsWith("Re:") ? subject : `Re: ${subject}`;
-                await sendEmailReply(account, fromAddr, replySubject, payload.text, messageId);
-                log?.info?.(`[${account.accountId}] Reply sent to ${fromAddr}`);
+                const atts: Array<{ filename: string; path: string }> = [];
+                const aPath = payload.filePath || payload.media;
+                if (aPath && typeof aPath === "string" && fs.existsSync(aPath)) {
+                  atts.push({ filename: path.basename(aPath), path: aPath });
+                }
+                await sendEmailReply(account, fromAddr, replySubject, payload.text, messageId, atts);
+                log?.info?.(`[${account.accountId}] Reply sent to ${fromAddr}${atts.length ? ` (with ${atts.length} attachment)` : ''}`);
               }
             },
           },
@@ -289,7 +327,7 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
   outbound: {
     deliveryMode: "direct",
     textChunkLimit: 50000,
-    sendText: async ({ to, text, accountId }) => {
+    sendText: async ({ to, text, accountId, media, filePath }: any) => {
       const runtime = getEmailRuntime();
       const aid = accountId ?? DEFAULT_ACCOUNT_ID;
       const cfg = runtime.config.loadConfig();
@@ -305,7 +343,17 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
         ? conv.subject.startsWith("Re:") ? conv.subject : `Re: ${conv.subject}`
         : "Message";
 
-      await sendEmailReply(account, toEmail, subject, text, conv?.lastMessageId);
+      // Build attachments from media or filePath
+      const attachments: Array<{ filename: string; path: string }> = [];
+      const attachPath = filePath || media;
+      if (attachPath && typeof attachPath === "string" && fs.existsSync(attachPath)) {
+        attachments.push({
+          filename: path.basename(attachPath),
+          path: attachPath,
+        });
+      }
+
+      await sendEmailReply(account, toEmail, subject, text, conv?.lastMessageId, attachments);
 
       return { channel: "email", to: toEmail };
     },

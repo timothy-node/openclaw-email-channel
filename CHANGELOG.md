@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-02-07
+
+### Added
+- **Inbound Attachment Support** - Incoming email attachments are now saved to `attachmentsDir` and file paths are appended to the message body
+- **Outbound Attachment Support** - `sendEmailReply()` now accepts an `attachments` parameter for sending files via SMTP
+- **Outbound filePath/media** - `outbound.sendText()` supports `filePath` and `media` parameters for attaching files to outgoing emails
+- **Deliver callback attachments** - The inbound `deliver` callback also supports `filePath`/`media` for reply attachments
+
+### Changed
+- `sendEmailReply()` signature extended with optional `attachments` array (`{ filename, path }[]`)
+- Added `fs` and `path` imports for file operations
+- Debug logging for attachment count on each inbound email
+
 ## [0.3.1] - 2026-02-07
 
 ### Fixed
