@@ -64,12 +64,22 @@ async function sendEmailReply(
 }
 
 /**
+ * Check if error is an authentication failure
+ */
+function isAuthError(err: any): boolean {
+  return err.authenticationFailed || 
+    err.message?.includes('AUTHENTICATIONFAILED') ||
+    err.message?.includes('Invalid credentials') ||
+    err.responseCode === 'AUTHENTICATIONFAILED';
+}
+
+/**
  * Create IMAP client with retry logic
  */
 async function createImapConnection(
   account: ResolvedEmailAccount,
   log?: { info: Function; warn: Function; error: Function }
-): Promise<ImapFlow> {
+): Promise<ImapFlow | null> {
   const maxRetries = 3;
   let lastError: Error | null = null;
 
@@ -84,6 +94,12 @@ async function createImapConnection(
           pass: account.imap.password,
         },
         logger: false,
+        socketTimeout: account.imap.timeout ?? 60000,
+      });
+
+      // Prevent uncaught exceptions from socket errors
+      client.on('error', (err: Error) => {
+        log?.warn?.(`[${account.accountId}] IMAP client error: ${err.message}`);
       });
 
       await client.connect();
@@ -94,13 +110,21 @@ async function createImapConnection(
       log?.warn?.(
         `[${account.accountId}] IMAP connect attempt ${attempt}/${maxRetries} failed: ${err.message}`
       );
+      
+      // Don't retry on auth errors - they won't succeed
+      if (isAuthError(err)) {
+        log?.error?.(`[${account.accountId}] Authentication failed - check your app password`);
+        return null;
+      }
+      
       if (attempt < maxRetries) {
         await new Promise((r) => setTimeout(r, 2000 * attempt));
       }
     }
   }
 
-  throw lastError ?? new Error("Failed to connect to IMAP");
+  log?.error?.(`[${account.accountId}] IMAP connection failed after ${maxRetries} attempts`);
+  return null;
 }
 
 /**
@@ -334,6 +358,18 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
       // Connect to IMAP
       imapClient = await createImapConnection(account, log);
 
+      // Handle connection failure gracefully
+      if (!imapClient) {
+        log?.warn(`[${account.accountId}] Email channel stopped - connection failed`);
+        ctx.setStatus({
+          accountId: account.accountId,
+          running: false,
+          lastError: 'Connection failed',
+          lastStopAt: Date.now(),
+        });
+        return { stop: async () => {} };
+      }
+
       // Check for new emails
       const checkEmails = async () => {
         if (stopped || !imapClient) return;
@@ -350,13 +386,12 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
             error.message?.includes("ECONNRESET")
           ) {
             log?.info(`[${account.accountId}] Attempting IMAP reconnection...`);
-            try {
-              if (imapClient) {
-                try { await imapClient.logout(); } catch {}
-              }
-              imapClient = await createImapConnection(account, log);
-            } catch (reconnectErr: any) {
-              log?.error(`[${account.accountId}] IMAP reconnection failed: ${reconnectErr.message}`);
+            if (imapClient) {
+              try { await imapClient.logout(); } catch {}
+            }
+            imapClient = await createImapConnection(account, log);
+            if (!imapClient) {
+              log?.error(`[${account.accountId}] IMAP reconnection failed`);
             }
           }
         }
