@@ -67,10 +67,10 @@ async function sendEmailReply(
  * Check if error is an authentication failure
  */
 function isAuthError(err: any): boolean {
-  return err.authenticationFailed || 
-    err.message?.includes('AUTHENTICATIONFAILED') ||
-    err.message?.includes('Invalid credentials') ||
-    err.responseCode === 'AUTHENTICATIONFAILED';
+  return err.authenticationFailed === true || 
+    err.serverResponseCode === 'AUTHENTICATIONFAILED' ||
+    err.responseText?.includes('Invalid credentials') ||
+    err.response?.includes('AUTHENTICATIONFAILED');
 }
 
 /**
@@ -114,6 +114,7 @@ async function createImapConnection(
       // Don't retry on auth errors - they won't succeed
       if (isAuthError(err)) {
         log?.error?.(`[${account.accountId}] Authentication failed - check your app password`);
+        log?.warn?.(`[${account.accountId}] Auth error details: authenticationFailed=${err.authenticationFailed}, serverResponseCode=${err.serverResponseCode}`);
         return null;
       }
       
