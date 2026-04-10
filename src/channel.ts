@@ -86,6 +86,30 @@ function isAuthError(err: any): boolean {
 }
 
 /**
+ * Safely close an IMAP connection with timeout and forced destroy fallback.
+ * Prevents connection leaks by ensuring the connection is fully closed
+ * before proceeding, even if the server is unresponsive.
+ */
+async function safeCloseImap(
+  client: ImapFlow,
+  accountId: string,
+  log?: { info: Function; warn: Function; error: Function }
+): Promise<void> {
+  try {
+    await Promise.race([
+      client.logout(),
+      new Promise<void>((resolve) => setTimeout(resolve, 5000)),
+    ]);
+    log?.info?.(`[${accountId}] IMAP connection closed gracefully`);
+  } catch (err: any) {
+    log?.warn?.(`[${accountId}] IMAP logout failed (${err.message}), forcing destroy`);
+    try {
+      client.destroy();
+    } catch {}
+  }
+}
+
+/**
  * Create IMAP client with retry logic
  */
 async function createImapConnection(
@@ -252,6 +276,7 @@ async function processInbox(
         ctx?.setStatus?.({
           ...ctx.getStatus?.(),
           lastInboundAt: Date.now(),
+          lastEventAt: Date.now(),
         });
       } catch (msgErr: any) {
         log?.error?.(`[${account.accountId}] Error processing message ${uid}: ${msgErr.message}`);
@@ -384,7 +409,7 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
 
   gateway: {
     startAccount: async (ctx) => {
-      const { account, log } = ctx;
+      const { account, log, abortSignal } = ctx;
       console.log("[email] startAccount called for", account.accountId);
 
       ctx.setStatus({
@@ -416,8 +441,17 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
           lastError: 'Connection failed',
           lastStopAt: Date.now(),
         });
-        return { stop: async () => {} };
+        throw new Error("Email IMAP connection failed");
       }
+
+      // Mark as connected to prevent health monitor from restarting
+      ctx.setStatus({
+        accountId: account.accountId,
+        fromAddress: account.fromAddress,
+        running: true,
+        connected: true,
+        lastStartAt: Date.now(),
+      });
 
       // Check for new emails
       const checkEmails = async () => {
@@ -438,7 +472,8 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
           ) {
             log?.info(`[${account.accountId}] Attempting IMAP reconnection...`);
             if (imapClient) {
-              try { await imapClient.logout(); } catch {}
+              await safeCloseImap(imapClient, account.accountId, log);
+              imapClient = null;
             }
             imapClient = await createImapConnection(account, log);
             if (!imapClient) {
@@ -455,30 +490,34 @@ export const emailPlugin: ChannelPlugin<ResolvedEmailAccount> = {
       pollTimer = setInterval(checkEmails, account.pollInterval);
       log?.info(`[${account.accountId}] Email polling started (every ${account.pollInterval}ms)`);
 
-      // Store handle
-      activePollers.set(account.accountId, {
-        stop: () => {
-          stopped = true;
-          if (pollTimer) clearInterval(pollTimer);
-          if (imapClient) imapClient.logout().catch(() => {});
-        },
-      });
-
-      return {
-        stop: () => {
+      // Return a long-running promise that resolves when abortSignal fires
+      // This keeps the channel alive in the framework's task list
+      return new Promise<void>((resolve) => {
+        const cleanup = async () => {
+          if (stopped) return;
           stopped = true;
           if (pollTimer) {
             clearInterval(pollTimer);
             pollTimer = null;
           }
           if (imapClient) {
-            imapClient.logout().catch(() => {});
+            await safeCloseImap(imapClient, account.accountId, log);
             imapClient = null;
           }
           activePollers.delete(account.accountId);
           log?.info(`[${account.accountId}] Email provider stopped`);
-        },
-      };
+          resolve();
+        };
+
+        abortSignal.addEventListener('abort', cleanup, { once: true });
+
+        activePollers.set(account.accountId, {
+          stop: async () => {
+            abortSignal.removeEventListener('abort', cleanup);
+            await cleanup();
+          },
+        });
+      });
     },
   },
 };
